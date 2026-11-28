@@ -1208,41 +1208,6 @@
   color: var(--ink);
 }
 
-/* A book with a companion: its guide under the cover, and Relive on each chapter read. */
-.shelf-guide {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  margin: 4px 0 14px;
-  padding: 8px 14px;
-  border-radius: 14px;
-  background: var(--card-2);
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.shelf-guide .grow {
-  display: grid;
-  min-width: 0;
-}
-
-.shelf-guide svg {
-  color: var(--ink-3);
-  flex: none;
-}
-
-.shelf-texts li:has(> .shelf-relive) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 4px;
-}
-
-.shelf-relive {
-  min-height: 36px;
-}
-
 /* ------------------------------------------------ the book page, plainer */
 /* The one thing to do here: go on reading. Under the book's head, not at the page's foot. */
 .book-go {
@@ -1318,12 +1283,6 @@
   border-top: 0;
 }
 
-.book-row > .shelf-relive {
-  grid-column: 1 / -1;
-  justify-self: start;
-  margin: -6px 0 8px 2.4em;
-}
-
 .book-row-main {
   display: grid;
   grid-template-columns: 1.8em minmax(0, 1fr) auto;
@@ -1354,6 +1313,113 @@
   align-items: baseline;
   gap: 10px;
   min-width: 0;
+}
+
+.book-row-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.book-row-title-tree {
+  display: grid;
+  gap: 2px;
+}
+
+.book-row-total {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Split chapters (>450 hanzi): a light hairline tree under the main chapter row. */
+.book-subrows {
+  grid-column: 1 / -1;
+  list-style: none;
+  margin: 0 0 10px 1.25em;
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--line);
+  display: grid;
+}
+
+.book-subrow {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+}
+
+.book-subrow::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: var(--line);
+}
+
+.book-subrow-main {
+  display: grid;
+  grid-template-columns: 2.3em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 5px 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.book-subrow-n {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.book-subrow[data-state='now'] .book-subrow-n {
+  color: var(--accent);
+}
+
+.book-subrow-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.book-subrow-preview {
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.book-subrow[data-state='done'] .book-subrow-preview {
+  color: var(--ink-2);
+}
+
+.book-subrow-title small {
+  flex: none;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.book-subrow-write {
+  font-size: 17px;
+  color: var(--ink-3);
+}
+
+.book-subrow-write:hover {
+  color: var(--accent);
 }
 
 .book-row-title b {

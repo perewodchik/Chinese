@@ -77,7 +77,7 @@ const scoreState = (n: number) => (n >= 80 ? 'right' : n >= 60 ? 'nearly' : 'wro
  * character by character on the speaking page. Here, each line with its best
  * score so far, and the button to the first line not said yet.
  */
-export function SpeakPart({ text, bests }: { text: GeneratedText; bests: Record<string, number> }) {
+export function SpeakPart({ text, bests, lineOffset = 0 }: { text: GeneratedText; bests: Record<string, number>; lineOffset?: number }) {
   const lines = text.lines.map((l, i) => ({ i, zh: l.zh, best: bests[l.zh] }));
   const said = lines.filter((l) => l.best !== undefined);
   const next = lines.find((l) => l.best === undefined) ?? null;
@@ -111,7 +111,7 @@ export function SpeakPart({ text, bests }: { text: GeneratedText; bests: Record<
       <ol className="rd-speak-lines">
         {lines.map((l) => (
           <li key={l.i}>
-            <Link to={paths.speakingSay(text.id, l.i)} className="rd-speak-line">
+            <Link to={paths.speakingSay(text.id, lineOffset + l.i)} className="rd-speak-line">
               <span className="rd-speak-n">{l.i + 1}</span>
               <span className="hanzi" lang="zh">
                 {l.zh}
@@ -124,7 +124,7 @@ export function SpeakPart({ text, bests }: { text: GeneratedText; bests: Record<
         ))}
       </ol>
       <div className="rd-speak-go">
-        <Link className="btn primary lg" to={paths.speakingSay(text.id, next?.i ?? 0)}>
+        <Link className="btn primary lg" to={paths.speakingSay(text.id, lineOffset + (next?.i ?? 0))}>
           {next ? (said.length ? `Say line ${next.i + 1}` : 'Start saying it') : 'Say it again from the start'}
         </Link>
       </div>

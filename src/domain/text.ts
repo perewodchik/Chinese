@@ -412,6 +412,8 @@ export interface TextStudy {
   copied?: number;
   /** how many of its sentences have been written from dictation, in order, in Write */
   dictated?: number;
+  /** 0-based paragraph indices read to the end, for a long chapter read in parts */
+  parasRead?: number[];
   /**
    * Sentences highlighted, and notes on them, by the sentence's index. Taking
    * a highlight off keeps the record with `off`, so a device that still has
@@ -462,6 +464,7 @@ export function mergeStudy(a: TextStudy | undefined, b: TextStudy | undefined): 
     ...optionalField('answers', a.answers || b.answers ? { ...a.answers, ...b.answers } : undefined),
     ...optionalField('copied', max(a.copied, b.copied)),
     ...optionalField('dictated', max(a.dictated, b.dictated)),
+    ...optionalField('parasRead', union(a.parasRead, b.parasRead)),
     ...optionalField('marks', mergeMarks(a.marks, b.marks)),
   };
 }

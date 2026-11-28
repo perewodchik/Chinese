@@ -49,6 +49,7 @@ export function DockPlayer({
   reading,
   spoken,
   narrated,
+  lineRange,
   onLine,
   onPlaying,
   control,
@@ -59,6 +60,8 @@ export function DockPlayer({
   spoken: string[];
   /** the reading chosen at the top of the text (Listen); null for the sentence voices, undefined while they are asked for */
   narrated: Narrated | null | undefined;
+  /** inclusive [from, to] line indices in `text` when playing one split part of a chapter */
+  lineRange?: [number, number];
   onLine: (i: number | null) => void;
   /** whether it is reading now, for Listen's own button */
   onPlaying: (on: boolean) => void;
@@ -85,9 +88,26 @@ export function DockPlayer({
     }
   };
 
+  const allTimings = narrated?.n.timings ?? [];
+  const fullDuration = narrated?.n.durationMs ?? 0;
+  const fromLine = lineRange?.[0] ?? 0;
+  const toLineIdx = lineRange?.[1] ?? Math.max(0, allTimings.length - 1);
+  const timings = useMemo(
+    () => (lineRange ? allTimings.slice(fromLine, toLineIdx + 1) : allTimings),
+    [lineRange, allTimings, fromLine, toLineIdx],
+  );
+  const startMs = lineRange ? (timings[0]?.[0] ?? 0) : 0;
+  const endMs = useMemo(() => {
+    if (!lineRange) return fullDuration;
+    const rawEnd = timings[timings.length - 1]?.[1] ?? fullDuration;
+    const nextStart = allTimings[toLineIdx + 1]?.[0];
+    return nextStart !== undefined ? Math.min(rawEnd + 200, nextStart) : rawEnd;
+  }, [lineRange, fullDuration, timings, allTimings, toLineIdx]);
+  const duration = Math.max(0, endMs - startMs);
+
   useEffect(() => {
     setSrc(null);
-    setAt(0);
+    setAt(startMs);
     if (!narrated) return;
     let live = true;
     narrationAudio(narrated.n).then((u) => live && setSrc(u), () => undefined);
@@ -95,10 +115,8 @@ export function DockPlayer({
       live = false;
       audio.current?.pause();
     };
-  }, [narrated]);
+  }, [narrated, startMs]);
 
-  const timings = narrated?.n.timings ?? [];
-  const duration = narrated?.n.durationMs ?? 0;
   const line = useMemo(() => {
     const ms = dragging ?? at;
     let i = 0;
@@ -111,8 +129,8 @@ export function DockPlayer({
   // The line being read, lit in the text; nothing lit once it is stopped at the start.
   const sentenceLine = reading.at;
   useEffect(() => {
-    if (narrated) onLine(playing || at > 0 ? line : null);
-  }, [narrated, playing, at, line, onLine]);
+    if (narrated) onLine(playing || at > startMs ? line : null);
+  }, [narrated, playing, at, startMs, line, onLine]);
   useEffect(() => () => onLine(null), [onLine]);
   const going = reading.at !== null || reading.loading;
   useEffect(() => onPlaying(narrated ? playing : going), [narrated, playing, going, onPlaying]);
@@ -121,14 +139,24 @@ export function DockPlayer({
   // How far the voice has got counts, as in Listen.
   const furthest = text.study?.listened ?? 0;
   useEffect(() => {
-    if (playing && line + 1 > furthest) studyText(text.id, { listened: line + 1 });
-  }, [playing, line, furthest, text.id]);
+    const absLine = fromLine + line + 1;
+    if (playing && absLine > furthest) studyText(text.id, { listened: absLine });
+  }, [playing, fromLine, line, furthest, text.id]);
 
   // The bar's button starts it from where it was and ✕ stops it; a text no narrator has read reads in the sentence voices.
   control.current = {
     start: () => {
       if (narrated === null) reading.readFrom(spoken, 0);
-      else void audio.current?.play().catch(() => undefined);
+      else {
+        const el = audio.current;
+        if (!el) return;
+        const cur = el.currentTime * 1000;
+        if (lineRange && (cur < startMs || cur >= endMs - 50)) {
+          el.currentTime = startMs / 1000;
+          setAt(startMs);
+        }
+        void el.play().catch(() => undefined);
+      }
     },
     stop: () => {
       audio.current?.pause();
@@ -146,8 +174,9 @@ export function DockPlayer({
   const seek = (ms: number) => {
     const el = audio.current;
     if (!el) return;
-    el.currentTime = Math.max(0, ms) / 1000;
-    setAt(Math.max(0, ms));
+    const clamped = Math.min(endMs, Math.max(startMs, ms));
+    el.currentTime = clamped / 1000;
+    setAt(clamped);
   };
 
   if (narrated === null) {
@@ -190,13 +219,14 @@ export function DockPlayer({
   }
 
   const shown = dragging ?? at;
+  const shownRel = Math.max(0, Math.min(duration, shown - startMs));
   /** To the start of sentence `i`, playing or not. */
   const toLine = (i: number) => {
     const start = timings[Math.max(0, Math.min(timings.length - 1, i))]?.[0];
     if (start !== undefined) seek(start);
   };
   // Back goes to the start of this sentence; at its very start, to the one before.
-  const startOf = timings[line]?.[0] ?? 0;
+  const startOf = timings[line]?.[0] ?? startMs;
   const back = () => toLine(shown - startOf > 1200 ? line : line - 1);
   return (
     <div className="rd-dock-play">
@@ -205,18 +235,33 @@ export function DockPlayer({
           ref={audio}
           src={src}
           preload="auto"
-          onTimeUpdate={(e) => setAt(e.currentTarget.currentTime * 1000)}
+          onTimeUpdate={(e) => {
+            const ms = e.currentTarget.currentTime * 1000;
+            if (lineRange && ms >= endMs) {
+              e.currentTarget.pause();
+              e.currentTarget.currentTime = startMs / 1000;
+              setPlaying(false);
+              setAt(startMs);
+              if (toLineIdx + 1 > furthest) studyText(text.id, { listened: toLineIdx + 1 });
+              return;
+            }
+            setAt(ms);
+          }}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => {
             setPlaying(false);
-            setAt(0);
+            setAt(startMs);
             const s = text.study ?? {};
-            studyText(text.id, { heard: Date.now(), listened: text.lines.length, listens: (s.listens ?? (s.heard ? 1 : 0)) + 1 });
+            if (lineRange) {
+              if (toLineIdx + 1 > furthest) studyText(text.id, { listened: toLineIdx + 1 });
+            } else {
+              studyText(text.id, { heard: Date.now(), listened: text.lines.length, listens: (s.listens ?? (s.heard ? 1 : 0)) + 1 });
+            }
           }}
         />
       )}
-      <button className="rd-dock-step" onClick={back} disabled={!src || !timings.length || shown <= 0} aria-label="The sentence before">
+      <button className="rd-dock-step" onClick={back} disabled={!src || !timings.length || shownRel <= 0} aria-label="The sentence before">
         <Icon name="prev" size={20} />
       </button>
       <button
@@ -226,7 +271,14 @@ export function DockPlayer({
           const el = audio.current;
           if (!el) return;
           if (playing) el.pause();
-          else void el.play();
+          else {
+            const cur = el.currentTime * 1000;
+            if (lineRange && (cur < startMs || cur >= endMs - 50)) {
+              el.currentTime = startMs / 1000;
+              setAt(startMs);
+            }
+            void el.play();
+          }
         }}
         aria-label={playing ? 'Pause' : 'Listen to the text'}
       >
@@ -241,17 +293,17 @@ export function DockPlayer({
         <Icon name="next" size={20} />
       </button>
       <div className="rd-dock-track">
-        <span className="rd-dock-time">{clock(shown)}</span>
+        <span className="rd-dock-time">{clock(shownRel)}</span>
         <input
           className="rd-dock-range"
           type="range"
           min={0}
           max={duration || 1}
           step={100}
-          value={shown}
+          value={shownRel}
           disabled={!src}
           aria-label="Where in the reading"
-          onChange={(e) => setDragging(Number(e.target.value))}
+          onChange={(e) => setDragging(startMs + Number(e.target.value))}
           onPointerUp={() => {
             if (dragging !== null) seek(dragging);
             setDragging(null);
@@ -264,7 +316,7 @@ export function DockPlayer({
             if (dragging !== null) seek(dragging);
             setDragging(null);
           }}
-          style={{ '--fill': `${Math.round((shown / (duration || 1)) * 100)}%` } as CSSProperties}
+          style={{ '--fill': `${Math.round((shownRel / (duration || 1)) * 100)}%` } as CSSProperties}
         />
         <span className="rd-dock-time">{clock(duration)}</span>
       </div>

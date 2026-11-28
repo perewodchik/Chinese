@@ -10,8 +10,16 @@ import { useStore } from '../../store/store';
 import { Icon } from '../../ui/Icon';
 import { useTitle } from '../../ui/useTitle';
 import { setPageColour } from '../../ui/colorScheme';
-import { bookOf, bookTitle, chapterHead, isFrontMatter, kindOf } from '../../domain/bookshelf';
-import { ChapterFinish, ChapterSheetView, sheetOfHash, type ChapterSheet } from './ChapterFinish';
+import { bookOf, bookTitle, chapterHead, chineseNumber, isFrontMatter, kindOf } from '../../domain/bookshelf';
+import {
+  allPartsRead,
+  lineHanziCount,
+  partParas,
+  partProgressKey,
+  sliceChapterPart,
+  splitChapter,
+} from '../../domain/chapterParts';
+import { ChapterFinish, ChapterSheetView, sheetOfHash, type ChapterSheet, type PartFinishInfo } from './ChapterFinish';
 import { ReaderFoot } from './ReaderFoot';
 import { BookContents } from './BookContents';
 import { ListenControl, useListenVoice } from './ListenBar';
@@ -61,13 +69,15 @@ export function ReaderPage() {
   const shelf = useMemo(() => shelve(texts, sets), [texts, sets]);
 
   const set = sets.find((s) => s.id === id) ?? null;
+  const rawPart = Number(params.get('part'));
+  const part = Number.isInteger(rawPart) && rawPart >= 1 ? rawPart : null;
   if (set) {
     const list = shelf.bySet.get(set.id) ?? [];
     if (!list.length) return <Missing />;
     const mode: ReadMode = params.get('mode') === 'all' ? 'all' : 'single';
     const v = params.get('v');
     const version: TextVersion | null = v === 'easy' || v === 'book' ? v : null;
-    return <Reader set={set} list={list} mode={mode} page={Number(params.get('page')) || 1} version={version} />;
+    return <Reader set={set} list={list} mode={mode} page={Number(params.get('page')) || 1} part={mode === 'single' ? part : null} version={version} />;
   }
 
   const text = texts.find((t) => t.id === id);
@@ -79,9 +89,9 @@ export function ReaderPage() {
     const entry = entries[at];
     const version: TextVersion | undefined =
       entry?.easier && entry.original ? (entry.easier.id === text.id ? 'easy' : 'book') : undefined;
-    return <Navigate to={paths.reading(home.id, { page: at + 1, version })} replace />;
+    return <Navigate to={paths.reading(home.id, { page: at + 1, part: part ?? undefined, version })} replace />;
   }
-  return <Reader set={null} list={[text]} mode="single" page={1} version={null} />;
+  return <Reader set={null} list={[text]} mode="single" page={1} part={part} version={null} />;
 }
 
 function Missing() {
@@ -110,6 +120,7 @@ interface ReaderProps {
   list: GeneratedText[];
   mode: ReadMode;
   page: number;
+  part: number | null;
   version: TextVersion | null;
 }
 
@@ -122,33 +133,54 @@ interface ReaderProps {
  * pinyin, translation and the rest.
  * Printing, which used to be the loudest button on the page, is in ⋯.
  */
-function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
+function Reader({ set, list, mode, page: asked, part: askedPart, version }: ReaderProps) {
   const entries = useMemo(() => shelfEntries(list), [list]);
   const total = entries.length;
   const page = Math.min(total, Math.max(1, asked));
   const entry = entries[page - 1]!;
-  const text = versionOf(entry, version);
+  const fullText = versionOf(entry, version);
+  const parts = useMemo(() => (isFrontMatter(fullText) ? [] : splitChapter(fullText)), [fullText]);
+  const activePart = useMemo(
+    () => (mode === 'single' && askedPart && parts.length ? (parts.find((p) => p.index === askedPart) ?? null) : null),
+    [mode, askedPart, parts],
+  );
+  const text = useMemo(() => (activePart ? sliceChapterPart(fullText, activePart) : fullText), [fullText, activePart]);
+  const lineOffset = activePart ? activePart.lineFrom : 0;
+  const hanziBefore = useMemo(
+    () => (activePart ? fullText.lines.slice(0, activePart.lineFrom).reduce((n, l) => n + lineHanziCount(l), 0) : 0),
+    [fullText.lines, activePart],
+  );
+  const progressKey = activePart ? partProgressKey(fullText.id, activePart.index) : fullText.id;
+  const viewKey = activePart ? `${fullText.id}#p${activePart.index}` : fullText.id;
   const both = Boolean(entry.easier && entry.original);
   // A story read as a book counts its chapters, the page of who is who before them not one of them.
   const story = Boolean(set) && kindOf(list) === 'story';
   const chapterAt = (at: number) =>
     story && !isFrontMatter(entries[at]!.main) ? entries.slice(0, at + 1).filter((e) => !isFrontMatter(e.main)).length : null;
   const chapters = story ? entries.filter((e) => !isFrontMatter(e.main)).length : 0;
-  const easier = both && text === entry.easier;
+  const chNum = chapterAt(page - 1);
+  const partLabel = activePart ? `${chNum ?? page}.${activePart.index}` : null;
+  const easier = both && fullText === entry.easier;
   const where =
     mode === 'all'
       ? story
         ? `All ${chapters} chapters`
         : `All ${total} texts`
       : !set
-        ? 'A text on its own'
+        ? activePart
+          ? `Part ${activePart.index} of ${activePart.total}`
+          : 'A text on its own'
         : story
-          ? chapterAt(page - 1) === null
+          ? chNum === null
             ? 'Before the chapters'
-            : `Chapter ${chapterAt(page - 1)} of ${chapters}${easier ? ', easier' : ''}`
-          : `Text ${page} of ${total}${easier ? ', easier' : ''}`;
-  const barName = set ? bookTitle(set.name) : text.titleZh || text.title;
-  useTitle(mode === 'all' && set ? set.name : text.titleZh || text.title);
+            : activePart
+              ? `Chapter ${chNum}.${activePart.index} (${activePart.index} of ${activePart.total})${easier ? ', easier' : ''}`
+              : `Chapter ${chNum} of ${chapters}${easier ? ', easier' : ''}`
+          : activePart
+            ? `Text ${page}.${activePart.index} (${activePart.index} of ${activePart.total})${easier ? ', easier' : ''}`
+            : `Text ${page} of ${total}${easier ? ', easier' : ''}`;
+  const barName = set ? bookTitle(set.name) : fullText.titleZh || fullText.title;
+  useTitle(mode === 'all' && set ? set.name : `${fullText.titleZh || fullText.title}${partLabel ? ` (${partLabel})` : ''}`);
 
   const navigate = useNavigate();
   const settings = useStore((s) => s.settings);
@@ -177,7 +209,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   useEffect(() => {
     setPeek(null);
     setHeld(null);
-  }, [text.id]);
+  }, [viewKey]);
   const closeContents = useCallback(() => setContents(false), []);
   // Sepia and Night are this page's: on while it is open, the app's own colours back when it closes.
   // Before the first paint, so a sepia page never shows white for a moment.
@@ -192,7 +224,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   // The narrator's row shows only while it is wanted: the listen button opens and starts it, ✕ or the button closes it.
   const [listening, setListening] = useState(false);
   const player = useRef<PlayerControl | null>(null);
-  useEffect(() => setListening(false), [text.id]);
+  useEffect(() => setListening(false), [viewKey]);
   function listen() {
     if (listening) {
       player.current?.stop();
@@ -212,7 +244,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
     if (r.top < pinned + 8 || r.bottom > window.innerHeight - 24) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [narrLine, text.id]);
   const top = useRef<HTMLDivElement>(null);
-  useEffect(() => setRevealed(new Set()), [text.id]);
+  useEffect(() => setRevealed(new Set()), [viewKey]);
 
   const view: ReaderView = {
     // One way of setting the text now: paragraphs, as a book sets them (Lines went with the redesign).
@@ -232,44 +264,76 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   /* -------------------------------------------------------- the voice */
   const spoken = useMemo(() => text.lines.map((l) => l.zh), [text.lines]);
   const reading = useReading(spoken);
-  const voice = useListenVoice(text, reading);
+  // Look up narrator recordings against the full main chapter so a split part plays its slice of the same narration.
+  const voice = useListenVoice(fullText, reading);
   const [playing, setPlaying] = useState(false);
   useEffect(() => prefetchPassage(spoken, reading.voice), [spoken, reading.voice]);
   // Heard to the end is the Listen part done, once more; read through a ref so a listening ending counts the latest number.
-  const listensRef = useRef(text.study?.listens ?? (text.study?.heard ? 1 : 0));
-  listensRef.current = text.study?.listens ?? (text.study?.heard ? 1 : 0);
+  const listensRef = useRef(fullText.study?.listens ?? (fullText.study?.heard ? 1 : 0));
+  listensRef.current = fullText.study?.listens ?? (fullText.study?.heard ? 1 : 0);
   useEffect(
     () =>
       onReadThrough((lines) => {
         if (lines.length === spoken.length && lines.every((l, i) => l === spoken[i])) {
-          studyText(text.id, { heard: Date.now(), listened: spoken.length, listens: (listensRef.current ?? 0) + 1 });
+          if (activePart) {
+            studyText(fullText.id, { listened: activePart.lineTo + 1 });
+          } else {
+            studyText(fullText.id, { heard: Date.now(), listened: spoken.length, listens: (listensRef.current ?? 0) + 1 });
+          }
         }
       }),
-    [spoken, text.id],
+    [spoken, fullText.id, activePart],
   );
 
   /* -------------------------------------------------------- moving about */
+  const activeVersion: TextVersion | undefined = both ? (fullText === entry.easier ? 'easy' : 'book') : undefined;
   const address = useCallback(
-    (to: { page?: number; mode?: ReadMode; version?: TextVersion }) =>
-      set ? paths.reading(set.id, to) : paths.text(text.id),
-    [set, text.id],
+    (to: { page?: number; part?: number; mode?: ReadMode; version?: TextVersion }) =>
+      set ? paths.reading(set.id, to) : paths.text(fullText.id, to.part),
+    [set, fullText.id],
   );
-  const go = (to: number) => navigate(address({ page: to }));
+  const stepTarget = (dir: -1 | 1): { page: number; part?: number } | null => {
+    if (activePart) {
+      if (dir === 1) {
+        if (activePart.index < activePart.total) return { page, part: activePart.index + 1 };
+        if (page < total) {
+          const nextEntry = entries[page]!;
+          const nextMain = versionOf(nextEntry, version);
+          const nextParts = isFrontMatter(nextMain) ? [] : splitChapter(nextMain);
+          return nextParts.length ? { page: page + 1, part: 1 } : { page: page + 1 };
+        }
+        return null;
+      }
+      if (activePart.index > 1) return { page, part: activePart.index - 1 };
+      if (page > 1) {
+        const prevEntry = entries[page - 2]!;
+        const prevMain = versionOf(prevEntry, version);
+        const prevParts = isFrontMatter(prevMain) ? [] : splitChapter(prevMain);
+        return prevParts.length ? { page: page - 1, part: prevParts.length } : { page: page - 1 };
+      }
+      return null;
+    }
+    if (dir === 1) return page < total ? { page: page + 1 } : null;
+    return page > 1 ? { page: page - 1 } : null;
+  };
+  const prevTarget = stepTarget(-1);
+  const nextTarget = stepTarget(1);
+  const goTo = (target: { page: number; part?: number }) => navigate(address({ ...target, version: activeVersion }));
 
   // Where Read and Today offer to come back to.
   useEffect(() => {
     if (mode !== 'single') return;
-    rememberReading({ textId: text.id, setId: set?.id ?? null, page, version: both ? (text === entry.easier ? 'easy' : 'book') : null, at: Date.now() });
-  }, [text, set?.id, page, mode, both, entry.easier]);
+    rememberReading({ textId: fullText.id, setId: set?.id ?? null, page, part: activePart?.index ?? null, version: activeVersion ?? null, at: Date.now() });
+  }, [fullText.id, set?.id, page, activePart?.index, mode, activeVersion]);
 
-  // A new text starts at its top, not wherever the last one was scrolled to.
+  // A new text or part starts at its top, not wherever the last one was scrolled to.
   useEffect(() => {
     top.current?.scrollIntoView({ block: 'start' });
-  }, [text.id, mode]);
+  }, [viewKey, mode]);
 
   // The arrow keys turn pages, as they do in every reader — but not while typing an answer.
   useEffect(() => {
-    if (mode !== 'single' || total < 2) return;
+    if (mode !== 'single' || (!prevTarget && !nextTarget)) return;
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return;
@@ -279,8 +343,8 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         e.preventDefault();
         return;
       }
-      if (e.key === 'ArrowRight' && page < total) go(page + 1);
-      if (e.key === 'ArrowLeft' && page > 1) go(page - 1);
+      if (e.key === 'ArrowRight' && nextTarget) goTo(nextTarget);
+      if (e.key === 'ArrowLeft' && prevTarget) goTo(prevTarget);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -323,7 +387,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
   const [sheet, setSheet] = useState<ChapterSheet | null>(() => sheetOfHash(readHash()));
   useEffect(() => {
     setSheet((s) => (s === null ? s : sheetOfHash(readHash())));
-  }, [text.id]);
+  }, [viewKey]);
   const openSheet = (s: ChapterSheet | null) => {
     setSheet(s);
     writeHash(s);
@@ -381,7 +445,7 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       el.removeEventListener('touchend', up);
       el.removeEventListener('touchcancel', up);
     };
-  }, [paged, text.id]);
+  }, [paged, viewKey]);
 
   /** A page on or back, in pages mode; false at either end, so the arrow keys go on to the next chapter there. */
   function turnPage(by: 1 | -1): boolean {
@@ -434,18 +498,18 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
         {mode === 'single' && both && (
           <div className="rd-versions" role="group" aria-label="Version">
             <button
-              aria-pressed={text === entry.easier}
+              aria-pressed={fullText === entry.easier}
               title="The easier retelling"
               aria-label="The easier retelling"
-              onClick={() => navigate(address({ page, version: 'easy' }), { replace: true })}
+              onClick={() => navigate(address({ page, part: activePart?.index, version: 'easy' }), { replace: true })}
             >
               简
             </button>
             <button
-              aria-pressed={text === entry.original}
+              aria-pressed={fullText === entry.original}
               title="The book’s own text"
               aria-label="The book’s own text"
-              onClick={() => navigate(address({ page, version: 'book' }), { replace: true })}
+              onClick={() => navigate(address({ page, part: activePart?.index, version: 'book' }), { replace: true })}
             >
               原
             </button>
@@ -486,11 +550,12 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       {mode === 'single' && (
         <div className="rd-dock" hidden={!listening}>
           <DockPlayer
-            key={voice.current ? voice.current.n.key : String(voice.current)}
-            text={text}
+            key={`${voice.current ? voice.current.n.key : String(voice.current)}:${activePart?.index ?? 'full'}`}
+            text={fullText}
             reading={reading}
             spoken={spoken}
             narrated={voice.current}
+            lineRange={activePart ? [activePart.lineFrom, activePart.lineTo] : undefined}
             onLine={setNarrLine}
             onPlaying={setPlaying}
             control={player}
@@ -504,54 +569,94 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
       </div>
 
       <div className="rd-text" data-layout="paragraph" ref={textBox} onClickCapture={tapEdge} onClick={tapText}>
-        {shown.map((t, i) => (
-          <Passage
-            key={t.id}
-            text={t}
-            view={view}
-            reading={t.id === text.id && listening ? (narrLine ?? reading.at) : null}
-            flash={t.id === text.id ? flash : null}
-            revealed={t.id === text.id ? revealed : new Set()}
-            onReveal={reveal}
-            onPoint={point}
-            retold={Boolean(entry.original) && t.id === entry.easier?.id}
-            study={study}
-            heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
-            head={chapterHead(t, chapterAt(mode === 'all' ? i : page - 1))}
-            titleAction={
-              mode === 'single' ? (
-                <ListenControl
-                  text={text}
-                  voice={voice}
-                  reading={reading}
-                  playing={listening && playing}
-                  onPlay={() => {
-                    if (!listening) listen();
-                    else if (playing) player.current?.stop();
-                    else player.current?.start();
-                  }}
-                />
-              ) : null
-            }
-            onHold={
-              t.id === text.id
-                ? (line, el) => {
-                    setPeek(null);
-                    setHeld({ i: line, el });
-                    if (!text.study?.translated) studyText(text.id, { translated: Date.now() });
-                  }
-                : undefined
-            }
-            held={t.id === text.id ? (held?.i ?? null) : null}
-            onWord={(p) => {
-              setHeld(null);
-              setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p));
-            }}
-            peekKey={peek?.key ?? null}
-          />
-        ))}
+        {shown.map((t, i) => {
+          const baseHead = chapterHead(t, chapterAt(mode === 'all' ? i : page - 1));
+          const head =
+            mode === 'single' && activePart
+              ? {
+                  ...baseHead,
+                  kicker: baseHead.kicker
+                    ? `${baseHead.kicker} · ${partLabel}`
+                    : story && chNum !== null
+                      ? `第${chineseNumber(chNum)}章 · ${partLabel}`
+                      : `Part ${partLabel}`,
+                }
+              : baseHead;
+          return (
+            <Passage
+              key={mode === 'single' ? viewKey : t.id}
+              text={t}
+              view={view}
+              reading={t.id === text.id && listening ? (narrLine ?? reading.at) : null}
+              flash={t.id === text.id ? flash : null}
+              revealed={t.id === text.id ? revealed : new Set()}
+              onReveal={reveal}
+              onPoint={point}
+              retold={Boolean(entry.original) && fullText.id === entry.easier?.id}
+              study={study}
+              heading={mode === 'all' && !story ? <p className="rd-kicker">Text {i + 1} of {total}</p> : null}
+              head={head}
+              partNote={
+                mode === 'single' && activePart ? (
+                  <p className="rd-part-note">
+                    <span>
+                      Part {activePart.index} of {activePart.total}, {activePart.hanzi.toLocaleString('en')} characters
+                    </span>
+                    <Link to={address({ page, version: activeVersion })}>Full chapter</Link>
+                  </p>
+                ) : null
+              }
+              titleAction={
+                mode === 'single' ? (
+                  <ListenControl
+                    text={fullText}
+                    voice={voice}
+                    reading={reading}
+                    playing={listening && playing}
+                    onPlay={() => {
+                      if (!listening) listen();
+                      else if (playing) player.current?.stop();
+                      else player.current?.start();
+                    }}
+                  />
+                ) : null
+              }
+              onHold={
+                t.id === text.id
+                  ? (line, el) => {
+                      setPeek(null);
+                      setHeld({ i: line, el });
+                      if (!fullText.study?.translated) studyText(fullText.id, { translated: Date.now() });
+                    }
+                  : undefined
+              }
+              held={t.id === text.id ? (held?.i ?? null) : null}
+              onWord={(p) => {
+                setHeld(null);
+                setPeek((was) => (was?.key === p.key && was.el === p.el ? null : p));
+              }}
+              peekKey={peek?.key ?? null}
+            />
+          );
+        })}
         {/* In pages the end of the chapter is its last page. */}
-        {paged && <ChapterFinish text={text} onOpen={openSheet} />}
+        {paged && (
+          <ChapterFinish
+            text={text}
+            onOpen={openSheet}
+            part={
+              activePart
+                ? ({
+                    index: activePart.index,
+                    total: activePart.total,
+                    nextLabel: activePart.index < activePart.total ? `${chNum ?? page}.${activePart.index + 1}` : null,
+                    nextTo: activePart.index < activePart.total ? address({ page, part: activePart.index + 1, version: activeVersion }) : null,
+                    fullTo: address({ page, version: activeVersion }),
+                  } satisfies PartFinishInfo)
+                : null
+            }
+          />
+        )}
       </div>
 
       {peek && (
@@ -573,29 +678,52 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
           line={text.lines[held.i]!}
           onClose={closeHeld}
           mark={text.study?.marks?.[held.i]}
-          onMark={(m) => studyText(text.id, { marks: { [held.i]: m } })}
+          onMark={(m) => studyText(fullText.id, { marks: { [lineOffset + held.i]: m } })}
         />
       )}
 
       {contents && set && (
-        <BookContents set={set} book={bookOf(set, list)} entries={entries} page={mode === 'single' ? page : 0} onClose={closeContents} />
+        <BookContents
+          set={set}
+          book={bookOf(set, list)}
+          entries={entries}
+          page={mode === 'single' ? page : 0}
+          part={activePart?.index ?? null}
+          onClose={closeContents}
+        />
       )}
 
       {mode === 'single' && (
         <div className="rd-study no-print">
-          {!paged && <ChapterFinish text={text} onOpen={openSheet} />}
+          {!paged && (
+            <ChapterFinish
+              text={text}
+              onOpen={openSheet}
+              part={
+                activePart
+                  ? {
+                      index: activePart.index,
+                      total: activePart.total,
+                      nextLabel: activePart.index < activePart.total ? `${chNum ?? page}.${activePart.index + 1}` : null,
+                      nextTo: activePart.index < activePart.total ? address({ page, part: activePart.index + 1, version: activeVersion }) : null,
+                      fullTo: address({ page, version: activeVersion }),
+                    }
+                  : null
+              }
+            />
+          )}
         </div>
       )}
 
       {mode === 'single' && sheet && (
-        <ChapterSheetView which={sheet} chapter={text.titleZh || text.title} onClose={() => openSheet(null)}>
+        <ChapterSheetView which={sheet} chapter={`${fullText.titleZh || fullText.title}${partLabel ? ` (${partLabel})` : ''}`} onClose={() => openSheet(null)}>
           {sheet === 'write' && (
             <>
-              <WritePart text={text} partId="part-write" />
+              <WritePart text={text} copyOffset={hanziBefore} fullCopied={fullText.study?.copied ?? 0} partId="part-write" />
               <MorePart text={text} partId="part-more" />
             </>
           )}
-          {isSpeakSectionEnabled && sheet === 'speak' && <SpeakPart text={text} bests={bests} />}
+          {isSpeakSectionEnabled && sheet === 'speak' && <SpeakPart text={text} bests={bests} lineOffset={lineOffset} />}
           {(sheet === 'words' || sheet === 'grammar') && (
             <WordsPart
               text={text}
@@ -607,23 +735,29 @@ function Reader({ set, list, mode, page: asked, version }: ReaderProps) {
             />
           )}
           {sheet === 'questions' && text.questions.length > 0 && (
-            <QuestionsPart key={`q${text.id}`} text={text} partId="part-questions" showPinyin={pinyin === 'all'} />
+            <QuestionsPart key={`q${viewKey}`} text={text} partId="part-questions" showPinyin={pinyin === 'all'} />
           )}
         </ChapterSheetView>
       )}
 
       {mode === 'single' && (
         <ReaderFoot
-          textId={text.id}
+          textId={progressKey}
           pages={paged}
-          onContents={set && total > 1 ? () => setContents(true) : null}
-          onPrev={page > 1 ? () => go(page - 1) : null}
-          onNext={page < total ? () => go(page + 1) : null}
-          prevLabel={story ? 'The chapter before' : 'The text before'}
-          nextLabel={story ? 'The next chapter' : 'The next text'}
+          onContents={set && (total > 1 || parts.length > 0) ? () => setContents(true) : null}
+          onPrev={prevTarget ? () => goTo(prevTarget) : null}
+          onNext={nextTarget ? () => goTo(nextTarget) : null}
+          prevLabel={activePart ? 'The part before' : story ? 'The chapter before' : 'The text before'}
+          nextLabel={activePart ? 'The next part' : story ? 'The next chapter' : 'The next text'}
           onEnd={() => {
-            // Scrolled to the end is read: counted once a day, as the old tick did.
-            if (!text.read) markRead(text.id);
+            if (activePart) {
+              const doneParas = partParas(activePart);
+              studyText(fullText.id, { parasRead: doneParas });
+              if (!fullText.read && allPartsRead(fullText, parts, doneParas)) markRead(fullText.id);
+            } else {
+              // Scrolled to the end is read: counted once a day, as the old tick did.
+              if (!fullText.read) markRead(fullText.id);
+            }
           }}
         />
       )}

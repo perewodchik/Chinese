@@ -18,9 +18,11 @@ export function scrolledShare(scrolled: number, height: number, room: number): n
   return Math.min(1, Math.max(0, scrolled / can));
 }
 
-/** About how long a text takes: a learner at HSK 1–2 reads about seventy characters a minute, stopping on what is new. */
+/** About how long a text (or a part of one, by hanzi count) takes: ~70 characters a minute at HSK 1–2. */
+export const minutesForHanzi = (hanzi: number): number => Math.max(1, Math.round(hanzi / 70));
+
 export function minutesToRead(text: GeneratedText): number {
-  return Math.max(1, Math.round(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0) / 70));
+  return minutesForHanzi(text.lines.reduce((n, l) => n + [...l.zh].filter(isHanzi).length, 0));
 }
 
 /**

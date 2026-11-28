@@ -287,6 +287,7 @@ function studyFrom(v: unknown): TextStudy | undefined {
     ...optional('answers', answersFrom(s.answers)),
     ...optional('copied', typeof s.copied === 'number' && Number.isInteger(s.copied) && s.copied > 0 ? s.copied : undefined),
     ...optional('dictated', typeof s.dictated === 'number' && Number.isInteger(s.dictated) && s.dictated > 0 ? s.dictated : undefined),
+    ...optional('parasRead', arr<number>(s.parasRead).filter((n) => Number.isInteger(n) && n >= 0)),
     ...optional('marks', marksFrom(s.marks)),
   };
   return Object.keys(out).length ? out : undefined;

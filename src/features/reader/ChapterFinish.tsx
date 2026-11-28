@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 import type { GeneratedText } from '../../domain/text';
 import { isSpeakSectionEnabled } from '../../navigation/features';
 import { Modal } from '../../ui/Modal';
@@ -22,7 +23,24 @@ export function sheetOfHash(hash: string): ChapterSheet | null {
  * States: a text with no word list, no grammar or no questions has no button
  * for it; a text with none of them shows only 完.
  */
-export function ChapterFinish({ text, onOpen }: { text: GeneratedText; onOpen: (s: ChapterSheet) => void }) {
+export interface PartFinishInfo {
+  index: number;
+  total: number;
+  /** e.g. "3.2" */
+  nextLabel: string | null;
+  nextTo: string | null;
+  fullTo: string;
+}
+
+export function ChapterFinish({
+  text,
+  onOpen,
+  part,
+}: {
+  text: GeneratedText;
+  onOpen: (s: ChapterSheet) => void;
+  part?: PartFinishInfo | null;
+}) {
   const items: Array<{ id: ChapterSheet; han: string; label: string; sub: string }> = [
     ...(text.vocab.length ? [{ id: 'words' as const, han: '词', label: 'Words', sub: `${text.vocab.length} in it` }] : []),
     ...(text.grammar.length ? [{ id: 'grammar' as const, han: '法', label: 'Grammar', sub: `${text.grammar.length} pattern${text.grammar.length === 1 ? '' : 's'}` }] : []),
@@ -30,11 +48,24 @@ export function ChapterFinish({ text, onOpen }: { text: GeneratedText; onOpen: (
     // Saying it after the narrator, line by line, with Speak on.
     ...(isSpeakSectionEnabled ? [{ id: 'speak' as const, han: '说', label: 'Say', sub: 'line by line' }] : []),
   ];
+  const midPart = Boolean(part && part.index < part.total);
   return (
-    <section className="rd-finish" aria-label="End of the chapter">
+    <section className="rd-finish" aria-label={midPart ? `End of part ${part!.index}` : 'End of the chapter'}>
       <p className="hanzi rd-fin" aria-hidden>
-        完
+        {midPart ? '续' : '完'}
       </p>
+      {part && (
+        <div className="rd-finish-part">
+          {part.nextTo && part.nextLabel && (
+            <Link className="btn tonal" to={part.nextTo}>
+              Continue to {part.nextLabel}
+            </Link>
+          )}
+          <Link className="btn quiet sm" to={part.fullTo}>
+            Read full chapter
+          </Link>
+        </div>
+      )}
       {items.length > 0 && (
         <div className="rd-finish-row" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
           {items.map((it) => (

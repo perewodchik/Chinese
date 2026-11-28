@@ -21,10 +21,10 @@ import { useLibrary } from '../shared/library';
 import { usePdfExport } from '../shared/usePdfExport';
 import { lastReading } from '../shared/lastRead';
 import { readerSheet } from './readerSheet';
-import { minutesToRead, shareOf } from './readerProgress';
+import { minutesForHanzi, minutesToRead, shareOf } from './readerProgress';
 import { useStartSession } from './startSession';
-import { bookcase, bookOf, bookTitle, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
-import { canRelive, castOf, readInBook } from '../../domain/companion';
+import { bookcase, bookOf, chapterHead, chineseNumber, isFrontMatter } from '../../domain/bookshelf';
+import { chapterRollup, isPartRead, partProgressKey, splitChapter } from '../../domain/chapterParts';
 import { BookWords, type BookWord, type Chapter } from './BookStudy';
 import { shelveBook } from '../../store/commands';
 import { BookCover } from './BookCover';
@@ -83,13 +83,10 @@ export function ShelfPage() {
   const book = list.some(fromBook);
   const asBook = bookOf(set, list);
   const story = asBook.kind === 'story';
-  // A book with a companion (domain/companion): its guide, and each chapter read in either book of the pair to live again.
-  const companion = story && castOf(bookTitle(set.name)) !== null;
-  // Not a hook: it comes after the early return above, and it is a pass over the texts once a render.
-  const readInPair = companion ? readInBook(texts, sets, bookTitle(set.name)) : new Set<string>();
   const progress = progressOf(list);
   // The chapter being read: the one last open here, else the first not read.
-  const lastId = lastReading()?.textId ?? null;
+  const last = lastReading();
+  const lastId = last?.textId ?? null;
   // Not `e.easier?.id === lastId`: with no easier version and nothing read, undefined would equal undefined.
   const lastAt = lastId ? entries.findIndex((e) => e.main.id === lastId || (e.easier !== null && e.easier.id === lastId)) : -1;
   const reading = lastAt >= 0;
@@ -97,11 +94,41 @@ export function ShelfPage() {
   const frontMatter = isFrontMatter;
   // Chapters numbered as a Chinese book numbers them, the page before them not counted.
   const numbers = entries.map((_e, i) => entries.slice(0, i + 1).filter((x) => !frontMatter(x.main)).length);
+  const partsByEntry = entries.map((e) => {
+    if (frontMatter(e.main)) return [];
+    return splitChapter(e.easier ?? e.main);
+  });
+  const rollups = entries.map((e, i) => {
+    const parts = partsByEntry[i]!;
+    return parts.length ? chapterRollup(e.easier ?? e.main, parts, shareOf) : null;
+  });
   const opened = (t: GeneratedText | null) => Boolean(t && (t.read || t.lastReadAt));
   const stateAt = (i: number): Chapter['state'] => {
     const e = entries[i]!;
-    return e.main.read || e.easier?.read ? 'done' : reading && i === nowAt ? 'now' : !opened(e.main) && !opened(e.easier) ? 'new' : 'open';
+    const r = rollups[i];
+    const done = Boolean(e.main.read || e.easier?.read || (r && r.partsRead === r.partsTotal));
+    return done ? 'done' : reading && i === nowAt ? 'now' : !opened(e.main) && !opened(e.easier) && !r?.started ? 'new' : 'open';
   };
+  // For the primary button: if the chapter to open is split, pick the resumed part or the first unread part.
+  const nowParts = partsByEntry[nowAt] ?? [];
+  const nowRollup = rollups[nowAt] ?? null;
+  const goPart: number | undefined = (() => {
+    if (!nowParts.length || (progress.total > 0 && progress.read === progress.total)) return undefined;
+    if (reading && last) {
+      if (last.part && nowParts.some((p) => p.index === last.part)) return last.part;
+      // Resuming the full chapter when the learner explicitly left off on the full chapter.
+      if (last.part === null) return undefined;
+    }
+    return nowRollup?.nextUnreadPart ?? 1;
+  })();
+  const goLabel = (() => {
+    if (progress.total > 0 && progress.read === progress.total) return 'Read it again from the start';
+    if (story && frontMatter(entries[nowAt]!.main)) return 'Start reading';
+    const baseNum = story ? `${numbers[nowAt]}` : `${nowAt + 1}`;
+    const numLabel = goPart ? `${baseNum}.${goPart}` : baseNum;
+    const verb = reading || Boolean(nowRollup?.started) ? 'Continue' : 'Read';
+    return `${verb} ${story ? `chapter ${numLabel}` : `text ${numLabel}`}`;
+  })();
   // The chapters as the Words and Characters tabs group by them, and one for what was added by hand.
   const chapters: Chapter[] = [
     ...entries.map((e, i): Chapter => ({
@@ -269,29 +296,12 @@ export function ShelfPage() {
       </div>
 
       {entries.length > 0 && (
-        <Link className="btn primary lg book-go" to={paths.reading(set.id, { page: nowAt + 1 })}>
-          {progress.total > 0 && progress.read === progress.total
-            ? 'Read it again from the start'
-            : story && frontMatter(entries[nowAt]!.main)
-              ? 'Start reading'
-              : reading
-                ? `Continue ${story ? `chapter ${numbers[nowAt]}` : `text ${nowAt + 1}`}`
-                : `Read ${story ? `chapter ${numbers[nowAt]}` : `text ${nowAt + 1}`}`}
+        <Link className="btn primary lg book-go" to={paths.reading(set.id, { page: progress.total > 0 && progress.read === progress.total ? 1 : nowAt + 1, part: goPart })}>
+          {goLabel}
         </Link>
       )}
 
       {entries.length > 0 && <BookNarrate texts={list} story={story} />}
-
-      {companion && entries.some((e) => !isFrontMatter(e.main) && canRelive(e, readInPair)) && (
-        <Link className="shelf-guide" to={paths.guide(set.id)}>
-          <Icon name="book" size={20} />
-          <span className="grow">
-            <b>Guide</b>
-            <span className="small muted">Who, where and what, from the chapters you have read</span>
-          </span>
-          <Icon name="chevron" size={18} />
-        </Link>
-      )}
 
       <div className="book-tabs" role="tablist">
         {TABS.map((t) => (
@@ -309,20 +319,42 @@ export function ShelfPage() {
               {entries.map((e, i) => {
                 const front = frontMatter(e.main);
                 const state = stateAt(i);
+                const primary = e.easier ?? e.main;
+                const parts = partsByEntry[i]!;
+                const rollup = rollups[i];
                 const pct = shareOf(e.easier?.id ?? e.main.id) ?? shareOf(e.main.id);
+                const subtitle = e.main.title.replace(/\s*\(easier\)\s*$/, '').replace(/^Chapter \d+:\s*/, '');
+                const num = numbers[i]!;
                 return (
-                  <li key={e.main.id} className="book-row" data-state={state}>
+                  <li key={e.main.id} className={parts.length ? 'book-row book-row-tree' : 'book-row'} data-state={state}>
                     <Link className="book-row-main" to={paths.reading(set.id, { page: i + 1 })}>
                       <span className="book-row-n hanzi" aria-hidden>
-                        {front ? '序' : story ? chineseNumber(numbers[i]!) : numbers[i]}
+                        {front ? '序' : story ? chineseNumber(num) : num}
                       </span>
-                      <span className="book-row-title">
-                        <b className="hanzi">{front ? e.main.titleZh || e.main.title : chapterHead(e.main, null).zh}</b>
-                        <small>{e.main.title.replace(/\s*\(easier\)\s*$/, '').replace(/^Chapter \d+:\s*/, '')}</small>
+                      <span className={rollup ? 'book-row-title book-row-title-tree' : 'book-row-title'}>
+                        <span className="book-row-title-line">
+                          <b className="hanzi">{front ? e.main.titleZh || e.main.title : chapterHead(e.main, null).zh}</b>
+                          {subtitle && <small>{subtitle}</small>}
+                        </span>
+                        {rollup && (
+                          <span className="book-row-total">
+                            {state === 'done'
+                              ? `${rollup.partsTotal} of ${rollup.partsTotal} parts read, ${rollup.totalHanzi.toLocaleString('en')} chars`
+                              : rollup.partsRead > 0
+                                ? `${rollup.partsRead} of ${rollup.partsTotal} parts read, ${rollup.totalHanzi.toLocaleString('en')} chars`
+                                : `${rollup.partsTotal} parts, ${rollup.totalHanzi.toLocaleString('en')} chars`}
+                          </span>
+                        )}
                       </span>
                       <span className="book-row-state">
                         {state === 'done' ? (
                           <Icon name="check" size={18} />
+                        ) : rollup ? (
+                          rollup.started && rollup.pct > 0 ? (
+                            <span className="now">{rollup.pct}%</span>
+                          ) : (
+                            `${minutesForHanzi(rollup.totalHanzi)} min`
+                          )
                         ) : state === 'now' && pct !== null ? (
                           <span className="now">{pct}%</span>
                         ) : (
@@ -338,10 +370,44 @@ export function ShelfPage() {
                     ) : (
                       <span />
                     )}
-                    {companion && !front && canRelive(e, readInPair) && (
-                      <Link className="btn quiet sm shelf-relive" to={paths.relive(set.id, i + 1)} aria-label={`Relive ${e.main.titleZh}`}>
-                        Relive
-                      </Link>
+                    {parts.length > 0 && (
+                      <ol className="book-subrows" aria-label={`Parts of chapter ${num}`}>
+                        {parts.map((p) => {
+                          const pDone = isPartRead(primary, p);
+                          const pShare = shareOf(partProgressKey(primary.id, p.index));
+                          const pNow = reading && i === nowAt && last?.part === p.index;
+                          const pState = pDone ? 'done' : pNow ? 'now' : pShare && pShare > 0 ? 'open' : 'new';
+                          const partNum = `${num}.${p.index}`;
+                          return (
+                            <li key={p.index} className="book-subrow" data-state={pState}>
+                              <Link className="book-subrow-main" to={paths.reading(set.id, { page: i + 1, part: p.index })}>
+                                <span className="book-subrow-n">{partNum}</span>
+                                <span className="book-subrow-title">
+                                  <span className="hanzi book-subrow-preview">{p.preview}</span>
+                                  <small>{p.hanzi.toLocaleString('en')} chars</small>
+                                </span>
+                                <span className="book-row-state">
+                                  {pDone ? (
+                                    <Icon name="check" size={16} />
+                                  ) : pNow || (pShare !== null && pShare > 0) ? (
+                                    <span className="now">{pShare ?? 0}%</span>
+                                  ) : (
+                                    `${minutesForHanzi(p.hanzi)} min`
+                                  )}
+                                </span>
+                              </Link>
+                              <Link
+                                className="book-row-write book-subrow-write hanzi"
+                                to={`${paths.reading(set.id, { page: i + 1, part: p.index })}#write`}
+                                aria-label={`Write out chapter ${partNum}`}
+                                title="Write it out"
+                              >
+                                写
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ol>
                     )}
                   </li>
                 );

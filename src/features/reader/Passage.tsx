@@ -104,6 +104,8 @@ interface PassageProps {
   heading?: ReactNode;
   /** the head as a book prints it: 第三章, the name, its English (`chapterHead`) */
   head: { kicker: string | null; zh: string; en: string };
+  /** quiet context line under the subtitle when reading one part of a split chapter */
+  partNote?: ReactNode;
   /** beside the title, to its right: Listen */
   titleAction?: ReactNode;
   /** a word tapped, for its card; without it a tap opens the word drawer */
@@ -121,7 +123,7 @@ interface PassageProps {
  * and off never moves a line. Punctuation stays with the word before it: a
  * line never begins with a comma.
  */
-export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, titleAction, onWord, peekKey }: PassageProps) {
+export function Passage({ text, view, reading, flash, revealed, onReveal, onHold, held, onPoint, retold, heading, head, partNote, titleAction, onWord, peekKey }: PassageProps) {
   const lib = useLibrary();
   const openItem = useOpenItem();
 
@@ -293,6 +295,7 @@ export function Passage({ text, view, reading, flash, revealed, onReveal, onHold
           {titleAction}
         </div>
         {head.en && head.en !== head.zh && <p className="rd-subtitle">{head.en}</p>}
+        {partNote}
       </header>
 
       {story && (

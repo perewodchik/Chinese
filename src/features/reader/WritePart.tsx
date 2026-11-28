@@ -10,7 +10,19 @@ import { Section } from './PartSection';
  * waiting in its square, and the ones after it faint, the way the copying
  * screen itself shows them. Tapping the strip is the same as the button.
  */
-export function WritePart({ text, partId }: { text: GeneratedText; partId: string }) {
+export function WritePart({
+  text,
+  partId,
+  copyOffset = 0,
+  fullCopied = text.study?.copied ?? 0,
+}: {
+  text: GeneratedText;
+  partId: string;
+  /** hanzi before this part in the main chapter, 0 for a full chapter */
+  copyOffset?: number;
+  /** characters copied so far in the main chapter */
+  fullCopied?: number;
+}) {
   // Kept in the address (#copy): reloaded, the copying is open again where it was left.
   const [copying, setCopying] = useHashFlag('copy');
   const chars = useMemo(() => text.lines.flatMap((l) => [...l.zh].filter((c) => /\p{Script=Han}/u.test(c))), [text.lines]);
@@ -70,7 +82,7 @@ export function WritePart({ text, partId }: { text: GeneratedText; partId: strin
       <button className="btn tonal lg rd-write-go" onClick={() => setCopying(true)}>
         {done ? 'Copy it out again' : copied ? 'Go on copying' : 'Start copying'}
       </button>
-      {copying && <CopyOut text={text} onClose={() => setCopying(false)} />}
+      {copying && <CopyOut text={text} copyOffset={copyOffset} fullCopied={fullCopied} onClose={() => setCopying(false)} />}
     </Section>
   );
 }

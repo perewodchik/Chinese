@@ -14,9 +14,10 @@ import { Icon } from '../../ui/Icon';
 import { Menu } from '../../ui/Menu';
 import { useTitle } from '../../ui/useTitle';
 import { lastReading } from '../shared/lastRead';
-import { minutesToRead, shareOf } from './readerProgress';
+import { minutesForHanzi, minutesToRead, shareOf } from './readerProgress';
 import { useStartSession } from './startSession';
 import { bookcase, bookOf, chapterHead, isFrontMatter, SHELF_ASIDE, SHELF_FINISHED, SHELF_READING, type Book } from '../../domain/bookshelf';
+import { partProgressKey, splitChapter } from '../../domain/chapterParts';
 import { BookCover } from './BookCover';
 import './shelves.css';
 import { FromLibrary } from './FromLibrary';
@@ -24,7 +25,7 @@ import { FromLibrary } from './FromLibrary';
 export const hasHan = (s: string) => [...s].some(isHanzi);
 
 /** Where to go to carry on: the text last open here, if it is still on the shelf; else the next unread one. */
-function useContinue(): { text: GeneratedText; set: TextSet | null; to: string } | null {
+function useContinue(): { text: GeneratedText; set: TextSet | null; part: number | null; to: string } | null {
   const texts = useStore((s) => s.texts);
   const sets = useStore((s) => s.sets);
   return useMemo(() => {
@@ -32,10 +33,21 @@ function useContinue(): { text: GeneratedText; set: TextSet | null; to: string }
     const text = last ? texts.find((t) => t.id === last.textId) : undefined;
     if (text && last) {
       const set = sets.find((s) => s.id === text.setId) ?? null;
-      return { text, set, to: set ? paths.reading(set.id, { page: last.page, version: last.version ?? undefined }) : paths.text(text.id) };
+      const part = last.part ?? null;
+      return {
+        text,
+        set,
+        part,
+        to: set
+          ? paths.reading(set.id, { page: last.page, part: part ?? undefined, version: last.version ?? undefined })
+          : paths.text(text.id, part ?? undefined),
+      };
     }
     const next = firstUnread(texts, sets);
-    return next ? { text: next.text, set: next.set, to: paths.reading(next.set.id, { page: next.page }) } : null;
+    if (!next) return null;
+    const parts = isFrontMatter(next.text) ? [] : splitChapter(next.text);
+    const part = parts.length ? 1 : null;
+    return { text: next.text, set: next.set, part, to: paths.reading(next.set.id, { page: next.page, part: part ?? undefined }) };
   }, [texts, sets]);
 }
 
@@ -341,16 +353,24 @@ function ContinueBook({ go }: { go: NonNullable<ReturnType<typeof useContinue>> 
   const chapters = entries.filter((e) => !isFrontMatter(e.main));
   const front = at >= 0 && isFrontMatter(entries[at]!.main);
   const chapterAt = at >= 0 && !front ? chapters.indexOf(entries[at]!) : -1;
-  const pct = shareOf(text.id) ?? 0;
-  const left = Math.max(1, Math.round(minutesToRead(text) * (1 - pct / 100)));
+  const parts = front ? [] : splitChapter(text);
+  const activePart = go.part && parts.length ? (parts.find((p) => p.index === go.part) ?? null) : null;
+  const pct = activePart ? (shareOf(partProgressKey(text.id, activePart.index)) ?? 0) : (shareOf(text.id) ?? 0);
+  const mins = activePart ? minutesForHanzi(activePart.hanzi) : minutesToRead(text);
+  const left = Math.max(1, Math.round(mins * (1 - pct / 100)));
   const head = chapterHead(text, null);
+  const chLabel = activePart ? `${chapterAt + 1}.${activePart.index}` : `${chapterAt + 1}`;
   return (
     <section className="continue-book" aria-label="Go on reading">
       {book && <BookCover book={book} width={64} />}
       <span className="continue-text">
         <span className="small muted continue-where">
           {book ? book.title : 'A text'}
-          {chapterAt >= 0 && chapters.length > 1 ? ` · ${book?.kind === 'story' ? 'Chapter' : 'Text'} ${chapterAt + 1} of ${chapters.length}` : front ? ' · Before you read' : ''}
+          {chapterAt >= 0 && (chapters.length > 1 || activePart)
+            ? ` · ${book?.kind === 'story' ? 'Chapter' : 'Text'} ${chLabel}${activePart ? '' : ` of ${chapters.length}`}`
+            : front
+              ? ' · Before you read'
+              : ''}
         </span>
         <span className="hanzi continue-title">{front ? text.titleZh || text.title : head.zh}</span>
         <span className="continue-bar" style={{ '--f': `${pct}%` } as CSSProperties}>

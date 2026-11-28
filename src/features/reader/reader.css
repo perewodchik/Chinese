@@ -2714,14 +2714,7 @@ a.rd-more-row {
 
 .rd-toc-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 2px;
-}
-
-/* A read chapter of a book with a companion: live it again, beside the row that opens it. */
-.rd-toc-relive {
-  min-height: 36px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .rd-toc-row {
@@ -2758,6 +2751,76 @@ a.rd-more-row {
 .rd-toc-row[aria-current='page'] .rd-toc-badge {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+/* Derived chapter parts in the Contents panel: subtle hairline tree under the full chapter. */
+.rd-toc-sublist {
+  list-style: none;
+  margin: 0 0 6px 28px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--line);
+  display: grid;
+  gap: 2px;
+}
+
+.rd-toc-subrow {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  min-height: 46px;
+  padding: 4px 8px;
+  gap: 10px;
+}
+
+.rd-toc-subbadge {
+  width: 32px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  background: var(--card-2);
+  color: var(--ink-2);
+}
+
+.rd-toc-subbadge[data-read] {
+  color: var(--jade);
+}
+
+.rd-toc-subrow[aria-current='page'] .rd-toc-subbadge {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rd-toc-preview {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Quiet context line under the chapter subtitle when reading a split part. */
+.rd-part-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.rd-part-note a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.rd-finish-part {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 .rd-toc-badge[data-read] {

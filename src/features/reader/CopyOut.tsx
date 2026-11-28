@@ -57,7 +57,17 @@ function keep(key: string, v: string) {
   }
 }
 
-export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () => void }) {
+export function CopyOut({
+  text,
+  copyOffset = 0,
+  fullCopied = text.study?.copied ?? 0,
+  onClose,
+}: {
+  text: GeneratedText;
+  copyOffset?: number;
+  fullCopied?: number;
+  onClose: () => void;
+}) {
   const lib = useLibrary();
   const openItem = useOpenItem();
   const wide = useWide();
@@ -118,10 +128,15 @@ export function CopyOut({ text, onClose }: { text: GeneratedText; onClose: () =>
   }, [lib, track]);
 
   // The place is kept, as characters copied, whenever it moves on.
+  // For a later part of a split chapter, only advance the main chapter's contiguous copy count once earlier parts are done.
   useEffect(() => {
     const reached = done ? totalChars : (unit?.before ?? 0);
-    if (reached > (text.study?.copied ?? 0)) studyText(text.id, { copied: reached });
-  }, [done, unit, totalChars, text.id, text.study?.copied]);
+    if (copyOffset === 0) {
+      if (reached > fullCopied) studyText(text.id, { copied: reached });
+    } else if (fullCopied >= copyOffset && copyOffset + reached > fullCopied) {
+      studyText(text.id, { copied: copyOffset + reached });
+    }
+  }, [done, unit, totalChars, text.id, copyOffset, fullCopied]);
 
   // Switching between the ways through keeps the place in the text.
   const place = useRef(unit?.before ?? 0);

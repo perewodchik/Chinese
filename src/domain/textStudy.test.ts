@@ -34,3 +34,10 @@ describe('highlights and notes', () => {
     assert.deepEqual(liveMarks(both), [{ line: 1, at: 7, note: 'b' }, { line: 2, at: 5 }]);
   });
 });
+
+describe('paragraphs read across parts', () => {
+  it('unions paragraphs read on either device without duplicates', () => {
+    const both = mergeStudy({ parasRead: [0, 1, 2] }, { parasRead: [2, 3, 4] });
+    assert.deepEqual(both?.parasRead, [0, 1, 2, 3, 4]);
+  });
+});

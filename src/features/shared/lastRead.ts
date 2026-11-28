@@ -11,6 +11,8 @@ export interface LastRead {
   textId: string;
   setId: string | null;
   page: number;
+  /** 1-based part number when reading a split chapter in parts; null/omitted for the full chapter */
+  part?: number | null;
   version: TextVersion | null;
   at: number;
 }
@@ -35,6 +37,7 @@ export function lastReading(): LastRead | null {
           textId: v.textId,
           setId: typeof v.setId === 'string' ? v.setId : null,
           page: v.page,
+          part: typeof v.part === 'number' && Number.isInteger(v.part) && v.part >= 1 ? v.part : null,
           version: v.version === 'easy' || v.version === 'book' ? v.version : null,
           at: typeof v.at === 'number' ? v.at : 0,
         }
