@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { GeneratedText, TextSet } from '../../src/domain/text';
-import { adaptedModel, addBookTexts, checkBookTexts, describeShelf, runningCoverage, STORY_MODEL, type BookOptions } from './book';
+import { adaptedModel, addBookTexts, checkBookTexts, describeShelf, misreadPinyin, runningCoverage, STORY_MODEL, type BookOptions } from './book';
+import type { CharacterEntry, Library } from '../../src/data/types';
 
 const reply = JSON.stringify({
   texts: [
@@ -192,5 +193,30 @@ describe('book passages onto the shelf', () => {
     // Chapter three brings nothing new: the list is left as it was.
     assert.equal(again.onList, undefined);
     assert.deepEqual(again.added.map((x) => x.text.titleZh), ['第三章']);
+  });
+});
+
+describe('pinyin the reader would show differently', () => {
+  const entry = (c: string, py: string): CharacterEntry => ({
+    c, i: 0, py: [py], def: '', rad: null, radNum: null, sc: null, ids: null, parts: [], leaves: [], ety: null, trad: null,
+    hsk: 1, freq: 1, layer: 0, words: [], sent: null, conf: [],
+  });
+  // The library keeps one reading a character: 着 is only zhe.
+  const chars = [entry('睡', 'shuì'), entry('着', 'zhe'), entry('了', 'le'), entry('他', 'tā')];
+  const lib: Library = { characters: chars, themes: [], components: {}, strokes: {}, byChar: new Map(chars.map((c) => [c.c, c])), words: [], byWord: new Map() };
+  const line = (zh: string, py: string) => ({ zh, py, en: '' });
+
+  it('finds a reading the library does not list, written inside a group', () => {
+    const found = misreadPinyin({ lines: [line('他睡着了。', 'tā shuìzháo le')] }, lib);
+    assert.equal(found.length, 1);
+    assert.match(found[0]!.shown, /shuì zhe/);
+  });
+
+  it('is quiet when the odd syllable is a group of its own', () => {
+    assert.deepEqual(misreadPinyin({ lines: [line('他睡着了。', 'tā shuì zháo le')] }, lib), []);
+  });
+
+  it('leaves out a sentence with Latin letters or digits, which no pinyin goes over', () => {
+    assert.deepEqual(misreadPinyin({ lines: [line('他是ZW08。', 'tā shì ZW líng bā')] }, lib), []);
   });
 });

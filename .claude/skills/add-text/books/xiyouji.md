@@ -1,7 +1,7 @@
 # 西游记 (Journey to the West): how this book is added
 
 Read this before adding a chapter of 西游记. It holds what was settled with
-the learner for chapters 1 and 2, so chapter 3 comes out the same.
+the learner for chapters 1 to 5, so the next one comes out the same.
 
 ## The book the learner has
 
@@ -21,29 +21,26 @@ The pages are often photographed with the next page's edge in the frame. The
 same lines then show twice (the right edge of page 4 is the start of page 5):
 take each line from the photo where it is whole.
 
-## Two books, not one
-
-The learner asked for two books on the shelf ("две книги"):
+## One book: the retelling
 
 | Session | id | What goes in |
 |---|---|---|
-| 西游记 (easier) | `mw3oblvnf2a5947e0114e54d5d7b` | the retelling of each chapter, `--adapted` |
-| 西游记 (original) | `mw4buuar03a879f3a3ab341fd623` | the book's own text, as printed |
+| 西游记 (easier) | `mw3oblvnf2a5947e0114e54d5d7b` | the retelling of each chapter, `--adapted`, and the preface |
 
-The original stands on its own shelf, **Originals** (`TextSet.shelf`, set
-19 November 2026 at the learner's asking), and has its own cover: another
-light of the same picture and a 原 Original sticker. The learner wants the
-original to stand on its own: its new characters do **not** count as met for
-later chapters (only the retelling's do, as the tool already does).
+Until 28 November 2026 there was a second book, 西游记 (original), with the
+book's own text of chapters 1 to 3 (on a shelf of its own, Originals). The
+learner asked for it to be deleted and for **only the easier version** from
+then on ("удали книгу оригинал, и сделай только в упрощённую версию"). It went
+with `npm run -s texts -- remove-set <id>` (nothing in it was read). So now:
+- add the retelling only: `--set <the id above> --source "西游记" --genre story
+  --adapted`; no file for the book's own text, and no second session;
+- the book's own text is the learner's printed book; the retelling is what
+  the app teaches from. If the original is ever wanted back, its chapters
+  can be added again from the photos as a book (without `--adapted`) into a
+  new session.
 
-Check the ids with `npm run -s texts -- sets` first; if one has changed, match
-by name. Both versions of a chapter go in every time, without asking: the
-learner said "в таком же стиле" for chapter 2, which means as chapter 1 was.
-The book's text is always "too hard" (chapter 2: 63% known, 125 new), so the
-retelling is not optional.
-
-Order: the easier file into the easier book with `--adapted`, then the book's
-file into the original book. `--source "西游记"`, `--genre story`.
+Check the id with `npm run -s texts -- sets` first; if it has changed, match
+by name.
 
 ## Titles
 
@@ -59,6 +56,8 @@ file into the original book. `--source "西游记"`, `--genre story`.
 | 1 | 美猴王横空出世 | The Monkey King is born |
 | 2 | 三星洞石猴学道 | The stone monkey learns the Way at Three Stars Cave |
 | 3 | 闯龙宫醉闹冥府 | Storming the Dragon Palace and rampaging drunk through the Underworld |
+| 4 | 美猴王自封大圣 | The Monkey King names himself Great Sage |
+| 5 | 孙悟空闹蟠桃会 | Sun Wukong crashes the Peach Banquet |
 
 ## Names, as they are written here
 
@@ -89,6 +88,15 @@ Keep every name in `vocab` of both versions, so the reader keeps it one word.
 | 生死簿 | shēngsǐbù | the Book of Life and Death (ch. 3) |
 | 太白金星 | Tàibái Jīnxīng | the Great White Star, the Jade Emperor's messenger (ch. 3) |
 | 灵霄宝殿, 天庭 | Língxiāo Bǎodiàn, tiāntíng | the Hall of Divine Mists; the Court of Heaven (ch. 3) |
+| 弼马温 | Bìmǎwēn | Stable Keeper, the lowest post in Heaven (ch. 4) |
+| 御马监 | Yùmǎjiān | the Imperial Stables (ch. 4) |
+| 齐天大圣, 大圣 | Qítiān Dàshèng, dàshèng | the Great Sage Equal to Heaven, the title he gives himself; 大圣 for short (ch. 4 on) |
+| 托塔天王李靖, 哪吒三太子 | Tuōtǎ Tiānwáng Lǐ Jìng, Né zhā Sān Tàizǐ | the Pagoda-Carrying King and his son Nezha, who fight him (ch. 4) |
+| 王母娘娘, 瑶池 | Wángmǔniángniang, Yáochí | the Queen Mother and the Jade Pool where she holds her feasts (ch. 5) |
+| 蟠桃(园, 大会) | pántáo(yuán, dàhuì) | the immortal peach; its garden; the Peach Banquet (ch. 5) |
+| 太上老君, 兜率宫 | Tàishàng Lǎojūn, Dōu shuài gōng | Lord Lao, master of the elixirs; his Tushita Palace (ch. 5) |
+| 赤脚大仙 | Chìjiǎo Dàxiān | the Barefoot Immortal, whose shape Wukong takes (ch. 5) |
+| 金丹, 仙酒 | jīndān, xiānjiǔ | the golden elixirs and the immortal wine he steals (ch. 5) |
 
 ## The book's written style
 
@@ -98,6 +106,18 @@ The edition writes as books do, and `note` should say so in one line:
 "to eat in the wind and sleep in the dew: a hard journey".
 
 ## The retelling
+
+**Chapters 4 and 5** (28 November 2026): 92% known with 41 new characters, and
+90% with 37 (the learner's words: "около 90%, может чуть выше"). A first draft
+came out at 93% and 88%; the first was too easy, so the book's details went
+back in (接风, 贺喜, 招安, 官衔, 神通, 邪心, 托塔天王, 称王称祖, 赤脚大仙,
+摇摇晃晃, 手舞足蹈, 炒豆) and the second was cut (寸→kept, 棵 kept, 楼, 贝,
+倒, 厉害, 府 and 燃灯古佛 dropped). The method that worked: write the Chinese
+only, count the share against `sets` with a few lines of script, trim and add
+until it is where the learner wants it, and only then write the pinyin and the
+English. Dropped on purpose: the book's 御马监 stays (a name), but 阻挡, 须臾,
+即刻, 浓密 and the like are said plainly; the editor's two moral boxes and
+the 好词积累 list are left out (offer them).
 
 Chapter 2's came out at 87% known with 11 new characters, all of them names or
 words the story cannot do without (菩提祖, 孙悟空, 聪, 教, 筋斗云). What worked:
@@ -127,13 +147,16 @@ words the story cannot do without (菩提祖, 孙悟空, 聪, 教, 筋斗云). W
 Drawn by hand, never by Gemini (the learner's choice), in the look of chapter
 1: coloured pencil on grained paper, soft and warm. Read
 `scripts/texts/art/BRIEF.md` first: its requirements are what each chapter is
-held to. The drawings are code:
+held to. **Chapters 4 and 5 went in with no pictures**, at the learner's asking
+("картинки не нужно делать"); ask again before drawing them, or the next
+chapters. The drawings are code:
 
 | Chapter | Module | Pictures |
 |---|---|---|
 | 1 | `scripts/texts/art/stories/xyj-ch1.mjs` | p1–p6, the same in both books |
 | 2 | `scripts/texts/art/stories/xyj-ch2.mjs` | p1–p8; ¶6 has `p6-book` (kneeling) and `p6-easy` (sitting) |
 | 3 | `scripts/texts/art/stories/xyj-ch3.mjs` | p1–p11, the same in both books (`p3-easy`, without the crown, was drawn for the first retelling and is not used now) |
+| 4, 5 | none | not drawn |
 
 The people, as the modules draw them, and as every chapter must keep them:
 - **Sun Wukong**: `monkey({ fur: HERO, hero: true })` — a golden-brown monkey
@@ -186,8 +209,9 @@ was swapped in place (same ids, dates and pictures) with a one-off script
 calling `addBookTexts` on the workspace without the old texts, then a PUT.
 
 Chapter 3 brings in the Dragon Kings, the Ten Kings of the Underworld and the
-Great White Star, and the preface does not have them yet (not done without
-asking: offered to the learner).
+Great White Star; chapters 4 and 5 bring in the Stable Keeper, Li Jing and
+Nezha, the Queen Mother, Lord Lao and the Barefoot Immortal. The preface does
+not have any of them yet (not done without asking: offered to the learner).
 
 ## Chapters so far
 
@@ -196,6 +220,8 @@ asking: offered to the learner).
 | 0 人物和词语 (preface) | `/read/text/mw51lpik317f85ec7315891e69f9` | — | none |
 | 1 美猴王横空出世 | in 西游记 (easier) | in 西游记 (original) | 6, `xyj-ch1.mjs` |
 | 2 三星洞石猴学道 | `/read/text/mw4ycn066abce04c8eeac21ee178` | `/read/text/mw4ycyqlaae565bb6e8fb8b7d951` | 8, `xyj-ch2.mjs` |
-| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (90% known, 42 new) | `/read/text/mwm99aige0bf825509aaa27cba86` (81%, 146 new) | 11, `xyj-ch3.mjs` |
+| 3 闯龙宫醉闹冥府 | `/read/text/mwm998fnb5f8171c2376611b0f08` (90% known, 42 new) | — (the original book was deleted) | 11, `xyj-ch3.mjs` |
+| 4 美猴王自封大圣 | `/read/text/mx0be1oxf96640a7f3a065554222` (92% known, 41 new) | — | none |
+| 5 孙悟空闹蟠桃会 | `/read/text/mx0be1ozac4cf7407890bb27dedd` (90% known, 37 new) | — | none |
 
 Add a row when a chapter goes in.

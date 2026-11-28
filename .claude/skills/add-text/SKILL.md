@@ -128,7 +128,8 @@ Rules — the book's text is the point, so it is never rewritten:
   name is one word; 了, 的 and 吗 stand alone; the neutral tone unmarked. A word
   on the HSK lists is read as the dictionary reads it (暖和 nuǎnhuo, not nuǎnhé).
   The reader finds the words from this grouping, so it matters as much as the
-  tones.
+  tones. `check` names any sentence whose pinyin the reader
+  would show other than as written; fix it as `craft.md` says.
 - **`en`**: a natural translation of the whole sentence.
 - **`teach`**: every character in the passage that is in neither `knownChars`
   nor `met`, in order of first appearance, with its reading here and a short

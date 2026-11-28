@@ -42,6 +42,13 @@ first time, from the chapters already added. Read it once before step 3.
 - One group a word. A 成语 is one group (fēngcānlùsù, shǒuwǔzúdǎo).
 - A name is one group, or two for a surname and given name (Sūn Wùkōng); it
   goes in `vocab` either way, which is what keeps it one word in the reader.
+- **The reader shows the library's reading, not yours, where the library has
+  one reading for a character** (长 only zhǎng, 着 only zhe, 率 only lǜ, 哪 only
+  nǎ). Write such a syllable as a group of its own, which the page trusts:
+  `shuì zháo`, `Dōu shuài gōng`, `cháng shēng bù lǎo`, `Né zhā`. A word on the
+  syllabus keeps its own reading (睡觉 shuìjiào) whatever the characters say.
+  `check` now prints every sentence whose pinyin would show differently,
+  written against shown, tones included: run it until it names none.
 - `check` names the groups it cannot find a meaning for, and some are only
   your grouping (七十 out of qīshí'èr, 来到, 听到, 指着): give each one a
   `vocab` entry rather than fight the grouping.

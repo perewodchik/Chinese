@@ -28,11 +28,15 @@
  *       what to draw for texts already on the shelf: { "pictures": { "<text id>": [{ para, prompt }] } };
  *       then illustrate draws them
  *   npm run texts -- boxes <text id> <boxes.json>
+ *       a comic's lines put where they are on their pages again: { "<line number from 0>": [left, top, width, height] },
+ *       for a box read wrong off the photo
  *   npm run texts -- lines <text id> <lines.json>
  *       a sentence of a text already on the shelf rewritten in place:
  *       { "<line number from 0>": { "zh": "…", "py": "…", "en": "…" } }
- *       a comic's lines put where they are on their pages again: { "<line number from 0>": [left, top, width, height] },
- *       for a box read wrong off the photo
+ *   npm run texts -- remove-set <id or name> [--force] [--dry-run]
+ *       a reading session and its texts taken off the shelf, as Delete does in the app.
+ *       Refused while any of its texts is read, or has the learner's highlights, notes or
+ *       answers, unless --force; the pictures are the account's and stay, filed by what they show
  *   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
  *       pictures drawn by hand (art/BRIEF.md) into a text, a paragraph each
  *   npm run texts -- record [--voice wang] [--set <id or name>]
@@ -68,6 +72,7 @@ import { isDue, type RecallBook } from '../../src/domain/memory';
 import type { CharacterEntry, Library, SyllabusWord } from '../../src/data/types';
 import { asLine, parseResponse, toText, type DraftText } from '../../src/domain/parse';
 import { newTextSchema } from '../../shared/text';
+import { alignPinyin } from '../../src/domain/reading';
 import { segment, writerHints } from '../../src/domain/segment';
 import { taughtAlready } from '../../src/domain/teach';
 import {
@@ -236,6 +241,13 @@ export interface Measured {
    * saving. Empty when no library was given to cut by.
    */
   unglossed: string[];
+  /**
+   * Sentences whose pinyin the reader would show other than as written: the
+   * library keeps one reading a character (长 zhǎng, 着 zhe, 率 lǜ), so a
+   * syllable it does not list is replaced by it. Found before saving, since a
+   * wrong reading over a character is the worst thing a text can teach.
+   */
+  misread: Array<{ zh: string; written: string; shown: string }>;
 }
 
 /** Sentences per length, as the plan's lengths count them. */
@@ -310,7 +322,27 @@ function measure(draft: DraftText, inv: Inventory, o: PassageOptions): Measured 
     cover,
     running: runningCoverage(base.lines, inv.known),
     unglossed: o.lib ? unglossedWords(base, o.lib) : [],
+    misread: o.lib ? misreadPinyin(base, o.lib) : [],
   };
+}
+
+const lettersOnly = (py: string) => py.normalize('NFC').toLowerCase().replace(/[^a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜüê]/g, '');
+
+/**
+ * The sentences whose pinyin the text page would show differently from what
+ * the writer wrote, tones and all, the way it lays them over the characters.
+ * A sentence with Latin letters or digits in it is left out: no pinyin goes
+ * over those. The fix is nearly always to write the odd syllable as a group of
+ * its own (shuì zháo, Dōu shuài gōng), which the page trusts.
+ */
+export function misreadPinyin(text: Pick<GeneratedText, 'lines'>, lib: Library): Measured['misread'] {
+  const out: Measured['misread'] = [];
+  for (const l of text.lines) {
+    if (/[A-Za-z0-9]/.test(l.zh)) continue;
+    const shown = alignPinyin(l, lib).join(' ');
+    if (lettersOnly(shown) !== lettersOnly(l.py)) out.push({ zh: l.zh, written: l.py, shown });
+  }
+  return out;
 }
 
 /**
@@ -685,6 +717,7 @@ const USAGE = `
   npm run texts -- describe <pictures.json>    { "pictures": { "<text id>": [{ "para": 0, "prompt": "…" }] } }
   npm run texts -- boxes <text id> <boxes.json>
   npm run texts -- lines <text id> <lines.json>
+  npm run texts -- remove-set <id or name> [--force] [--dry-run]
   npm run texts -- put <text id> <picture for ¶1> <picture for ¶2> …
   npm run texts -- first <text id>    the text first in its session (a preface added after the chapters)
   npm run texts -- record [--voice wang] [--set <id or name>]    on the Mac: the texts, read aloud for the site
@@ -692,7 +725,7 @@ const USAGE = `
 
 const percent = (r: number) => `${Math.round(r * 100)}%`;
 
-function describe({ text, cover, running, preface, unglossed }: Measured, path = '') {
+function describe({ text, cover, running, preface, unglossed, misread }: Measured, path = '') {
   console.log(`\n  ${preface ? '(preface) ' : ''}${text.titleZh} — ${text.title}${path ? `   ${path}` : ''}`);
   console.log(
     `    ${text.lines.length} sentences · ${textCharCount(text)} characters, ${percent(running)} of them known · ${cover.total} distinct, ${cover.fresh.length} new · ${text.level}`,
@@ -700,6 +733,10 @@ function describe({ text, cover, running, preface, unglossed }: Measured, path =
   console.log(`    new: ${text.teach.join('') || 'none'}`);
   console.log(`    ${text.vocab.length} words · ${text.grammar.length} grammar · ${text.questions.length} questions`);
   if (unglossed.length) console.log(`    off the HSK lists, with no meaning in vocab: ${unglossed.join('、')}`);
+  if (misread.length) {
+    console.log(`    pinyin the reader would show differently from what is written (write the odd syllable as a group of its own):`);
+    for (const m of misread) console.log(`      ${m.zh}\n        written ${m.written}\n        shown   ${m.shown}`);
+  }
 }
 
 function report(result: BookResult, where: string, dryRun: boolean) {
@@ -730,6 +767,7 @@ async function main(argv: string[]) {
       preface: { type: 'boolean', default: false },
       learn: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
+      force: { type: 'boolean', default: false },
       voice: { type: 'string' },
       text: { type: 'string', multiple: true },
       redo: { type: 'boolean', default: false },
@@ -774,6 +812,50 @@ async function main(argv: string[]) {
         const next = { ...document, texts: texts.map((t) => (t.id === textId ? { ...t, lines } : t)) };
         if (values['dry-run'] || (await account.write(revision, next))) {
           console.log(`  ${text.titleZh || text.title}: ${Object.keys(wanted).length} boxes put${values['dry-run'] ? ' (dry run)' : ''}`);
+          return;
+        }
+        if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
+      }
+    } finally {
+      await account.close();
+    }
+  }
+  if (command === 'remove-set') {
+    const which = positionals[0];
+    if (!which) throw new Error(`Which session?\n${USAGE}`);
+    const account = await openAccount();
+    try {
+      for (let attempt = 1; ; attempt++) {
+        const { revision, document } = await account.read();
+        if (!isDoc(document)) throw new Error(`${account.where} has never saved anything.`);
+        const { texts, sets } = shelfOf(document);
+        const named = (n: string) => n.trim().toLowerCase();
+        const set = sets.find((x) => x.id === which) ?? sets.find((x) => named(x.name) === named(which));
+        if (!set) throw new Error(`No reading session “${which}”. There are: ${sets.map((x) => `“${x.name}”`).join(', ') || 'none'}.`);
+        const going = texts.filter((t) => t.setId === set.id);
+        // What the learner did in a text, as against what merely opened or played it.
+        const work = (t: GeneratedText) => {
+          const st = t.study;
+          const bits = [
+            t.read ? 'read' : '',
+            t.lastReadAt ? 'opened' : '',
+            Object.values(st?.marks ?? {}).some((m) => !m.off) ? 'highlights or notes' : '',
+            st?.answered?.length || Object.keys(st?.answers ?? {}).length ? 'answers' : '',
+            st?.written?.length || st?.copied || st?.dictated ? 'writing practice' : '',
+          ].filter(Boolean);
+          return bits;
+        };
+        console.log(`  ${set.name}: ${going.length} text(s)`);
+        for (const t of going) {
+          const w = work(t);
+          console.log(`    ${t.titleZh || t.title}${w.length ? `  — has ${w.join(', ')}` : ''}`);
+        }
+        if (going.some((t) => work(t).length) && !values.force) {
+          throw new Error('Something in it was read or worked on. Nothing removed; --force removes it all the same.');
+        }
+        const next = { ...document, sets: sets.filter((x) => x.id !== set.id), texts: texts.filter((t) => t.setId !== set.id) };
+        if (values['dry-run'] || (await account.write(revision, next))) {
+          console.log(`  ${values['dry-run'] ? 'Would remove' : 'Removed'} “${set.name}” and its ${going.length} text(s).`);
           return;
         }
         if (attempt === 3) throw new Error('The workspace kept changing under this save. Try again in a minute.');
