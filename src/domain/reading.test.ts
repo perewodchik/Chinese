@@ -62,6 +62,16 @@ describe('paragraphs', () => {
 });
 
 describe('alignPinyin', () => {
+  it('keeps a word’s own reading where a character alone is listed with another: 睡觉 shuìjiào, 便宜 piányi', () => {
+    const words = [
+      { w: '睡觉', py: 'shuì jiào', d: '', hsk: 1 },
+      { w: '便宜', py: 'pián yi', d: '', hsk: 2 },
+    ];
+    const withWords: Library = { ...lib([entry('睡', 1, 'shuì'), entry('觉', 1, 'jué'), entry('便', 2, 'biàn'), entry('宜', 2, 'yí'), entry('我', 1, 'wǒ')]), words, byWord: new Map(words.map((w) => [w.w, w])) };
+    assert.deepEqual(alignPinyin(line('我睡觉。', 'wǒ shuìjiào'), withWords), ['wǒ', 'shuì', 'jiào']);
+    assert.deepEqual(alignPinyin(line('便宜', 'piányi'), withWords), ['pián', 'yi']);
+  });
+
   it('puts the writer’s syllable over each character when the counts agree', () => {
     assert.deepEqual(alignPinyin(line('我喜欢了。', 'wǒ xǐ huan le')), ['wǒ', 'xǐ', 'huan', 'le']);
   });

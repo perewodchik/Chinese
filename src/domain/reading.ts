@@ -126,6 +126,30 @@ function asTheWordIsRead(w: string, cut: string[], lib: Library): string[] {
   return own.length === cut.length ? own : cut;
 }
 
+/**
+ * A writer's word cut by a syllabus word's own reading, when the two are the
+ * same letters: shuìjiào over 睡觉 (shuì jiào) gives shuì, jiào. Null when the
+ * characters make no listed word, or the writer wrote something else.
+ */
+function asListed(w: string, written: string, lib: Library): string[] | null {
+  const word = lib.byWord?.get(w);
+  if (!word) return null;
+  const bare = flat(written);
+  if (bare.length !== written.length) return null;
+  for (const py of [word.py, ...(word.alt ?? []).map((a) => a.py)]) {
+    const syl = flat(py).split(/\s+/).filter(Boolean);
+    if (syl.length !== [...w].length || syl.join('') !== bare) continue;
+    const out: string[] = [];
+    let at = 0;
+    for (const x of syl) {
+      out.push(written.slice(at, at + x.length));
+      at += x.length;
+    }
+    return out;
+  }
+  return null;
+}
+
 /** Longest word worth trying to lay over characters: 4 covers 成语 and most names. */
 const MAX_SPAN = 4;
 
@@ -167,7 +191,14 @@ function alignWords(chars: string[], words: string[], lib: Library): string[] {
         // One syllable over one character is trusted even when the library
         // does not list that reading; a longer word it cannot cut is not.
         else if (k === 1) offer(i + 1, j + 1, here.cost + 1, [i, j], [words[i]!]);
-        else offer(i + 1, j + k, here.cost + 2 * k - 1, [i, j], chars.slice(j, j + k).map((_, x) => fallback(j + x)));
+        else {
+          // The characters' readings do not cover it, but the word's own does:
+          // 睡觉 shuìjiào, though 觉 alone is listed only as jué. The writer's
+          // syllables, cut where the word's reading cuts them.
+          const byWord = asListed(chars.slice(j, j + k).join(''), words[i]!, lib);
+          if (byWord) offer(i + 1, j + k, here.cost, [i, j], byWord);
+          else offer(i + 1, j + k, here.cost + 2 * k - 1, [i, j], chars.slice(j, j + k).map((_, x) => fallback(j + x)));
+        }
       }
     }
   }
